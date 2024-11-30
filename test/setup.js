@@ -19,7 +19,7 @@ async function setupProposals() {
   const generalConfig = await fs.readFile("./configs/generalConfig.json", "utf-8").then(JSON.parse)
   await applyPropConfig("phases", phasesConfig)
   await applyPropConfig("general", generalConfig)
-  const configTable = blockchain.getAccount(Name.from("proposals")).tables
+  // const configTable = blockchain.getAccount(Name.from("proposals")).tables
 }
 
 export async function initContracts() {

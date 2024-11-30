@@ -1,9 +1,48 @@
-import { Blockchain, nameToBigInt, expectToThrow } from "@eosnetwork/vert"
-import { Name } from "@greymass/eosio"
+import { Blockchain, nameToBigInt, expectToThrow, AccountPermission } from "@eosnetwork/vert"
+import { Authority, Name, PermissionLevel, PermissionLevelWeight, UInt16, UInt32 } from "@greymass/eosio"
 export const blockchain = new Blockchain()
-export const referendums = blockchain.createContract("referendums", "../build/referendums")
+export const referendums = blockchain.createContract("eospropvotes", "../build/referendums")
 export const proposals = blockchain.createContract("proposals", "../build/proposals")
 export const token = blockchain.createContract("eosio.token", "../build/token")
+referendums.setPermissions([
+  AccountPermission.from({
+    perm_name: Name.from("owner"),
+    parent: Name.from(""),
+    required_auth: Authority.from({
+      threshold: UInt32.from(1),
+      keys: [],
+      accounts: [
+        PermissionLevelWeight.from({
+          permission: PermissionLevel.from("eospropvotes@eosio.code"),
+          weight: UInt16.from(1),
+        }),
+      ],
+      waits: [],
+    }),
+  }),
+  AccountPermission.from({
+    perm_name: Name.from("active"),
+    parent: Name.from("owner"),
+    required_auth: Authority.from({
+      threshold: UInt32.from(1),
+      keys: [],
+      accounts: [
+        PermissionLevelWeight.from({
+          permission: PermissionLevel.from("eospropvotes@eosio.code"),
+          weight: UInt16.from(1),
+        }),
+        PermissionLevelWeight.from({
+          permission: PermissionLevel.from("proposals@eosio.code"),
+          weight: UInt16.from(1),
+        }),
+      ],
+      waits: [],
+    }),
+  }),
+])
+// const accountInfo = blockchain.getAccount(Name.from("eospropvotes"))
+// console.log("Permissions:", JSON.stringify(accountInfo.permissions, null, 2))
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 await sleep(1)
 const contracts = { referendums, proposals, token }
@@ -26,6 +65,7 @@ export async function prop(actionName, data, auth) {
   // console.log("prop", actionName, data, auth)
   return act("proposals", actionName, data, auth)
 }
+export async function propertiesT() {}
 export async function ref(actionName, data, auth) {
   // console.log("ref", actionName, data, auth)
   return act("referendums", actionName, data, auth)
